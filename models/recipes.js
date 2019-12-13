@@ -1,54 +1,33 @@
 const db = require('../data/dbConfig')
 
-const find = () => db('schemes')
+const getRecipes = () => db('recipes')
 
-const findById = id => {
-    return db('schemes').where({id}).first()
+const getShoppingList = id => {
+    return db('recipe_ingredients')
+    .select('ingredients.ingredient_name', 'recipe_ingredients.quantity')
+    .join('recipes', 'recipes.id', 'recipe_ingredients.recipe_id')
+    .join('ingredients', 'ingredients.id', 'recipe_ingredients.ingredient_id')
+    .where('recipes.id', id)
 }
 
-const findSteps = id => {
-    return db('steps as st')
-    .join('schemes as sc', 'sc.id', 'st.scheme_id')
-    .select('st.id', 'sc.scheme_name', 'st.step_number', 'st.instructions')
-    .where('st.scheme_id', id)
+const getInstructions = id => {
+    return db('steps')
+    .select('steps.step_number', 'steps.step_name', 'steps.step_instructions')
+    .join('recipes', 'steps.recipe_id', 'recipes.id')
+    .where('recipes.id', id)
 }
 
-const add = scheme => {
-    return db('schemes').insert(scheme)
-    .then(ids => {
-        return findById(ids[0])
-    })
-}
-
-const update = (changes, id) => {
-    return db('schemes').where({id})
-    .update(changes)
-    .then(res => {
-        return findById(id)
-    })
-}
-
-const remove = id => {
-    return db('schemes').where({id}).del()
-    .then(res => `Deleted scheme with the id of ${id}`)
-}
-
-// STRETCH
-
-const addStep = (step, scheme_id) => {
-    let newStep = {...step, scheme_id: scheme_id}
-    return db('steps').insert(newStep)
-    .then(ids => {
-        return newStep
-    })
+const getIngredientInRecipe = id => {
+    return db('recipe_ingredients')
+    .select('recipes.recipe_name')
+    .join('recipes', 'recipes.id', 'recipe_ingredients.recipe_id')
+    .join('ingredients', 'ingredients.id', 'recipe_ingredients.ingredient_id')
+    .where('ingredients.id', id)
 }
 
 module.exports = {
-    find,
-    findById,
-    findSteps,
-    add,
-    update,
-    remove,
-    addStep
+    getRecipes,
+    getShoppingList,
+    getInstructions,
+    getIngredientInRecipe
 }
